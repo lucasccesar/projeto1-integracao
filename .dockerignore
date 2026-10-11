@@ -1,0 +1,7 @@
+.git
+.idea
+.m2
+docs/superpowers
+maven-settings.xml
+target
+*.log

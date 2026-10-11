@@ -1,0 +1,187 @@
+{
+  "realm": "seminar",
+  "enabled": true,
+  "displayName": "Demonstração OAuth OIDC",
+  "sslRequired": "none",
+  "registrationAllowed": false,
+  "resetPasswordAllowed": false,
+  "editUsernameAllowed": false,
+  "accessTokenLifespan": 300,
+  "roles": {
+    "client": {
+      "orders-api": [
+        {
+          "name": "USER",
+          "clientRole": true,
+          "composite": false,
+          "containerId": "orders-api",
+          "description": "Pode consultar e criar os próprios pedidos"
+        },
+        {
+          "name": "ADMIN",
+          "clientRole": true,
+          "composite": false,
+          "containerId": "orders-api",
+          "description": "Pode excluir pedidos"
+        }
+      ]
+    }
+  },
+  "clientScopes": [
+    {
+      "name": "orders-api-audience",
+      "description": "Inclui orders-api na audiência do Access Token",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "false",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "orders-api-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "orders-api",
+            "id.token.claim": "false",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "false"
+          }
+        },
+        {
+          "name": "orders-api-client-roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-client-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "access.token.claim": "true",
+            "claim.name": "resource_access.orders-api.roles",
+            "id.token.claim": "false",
+            "jsonType.label": "String",
+            "multivalued": "true",
+            "userinfo.token.claim": "false",
+            "usermodel.clientRoleMapping.clientId": "orders-api"
+          }
+        }
+      ]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "orders-api",
+      "name": "orders-api",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "fullScopeAllowed": false,
+      "defaultClientScopes": ["roles"]
+    },
+    {
+      "clientId": "seminar-postman",
+      "name": "Cliente público do Postman para o seminário",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "fullScopeAllowed": true,
+      "redirectUris": ["https://oauth.pstmn.io/v1/callback"],
+      "webOrigins": ["https://oauth.pstmn.io"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "oauth2.device.authorization.grant.enabled": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "subject",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-sub-mapper",
+          "consentRequired": false,
+          "config": {
+            "access.token.claim": "true",
+            "id.token.claim": "true",
+            "introspection.token.claim": "true",
+            "userinfo.token.claim": "true"
+          }
+        },
+        {
+          "name": "orders-api-client-roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-client-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "access.token.claim": "true",
+            "claim.name": "resource_access.orders-api.roles",
+            "id.token.claim": "false",
+            "jsonType.label": "String",
+            "multivalued": "true",
+            "userinfo.token.claim": "false",
+            "usermodel.clientRoleMapping.clientId": "orders-api"
+          }
+        }
+      ],
+      "defaultClientScopes": [
+        "profile",
+        "email",
+        "roles",
+        "web-origins",
+        "orders-api-audience"
+      ]
+    }
+  ],
+  "clientScopeMappings": {
+    "seminar-postman": [
+      {
+        "client": "orders-api",
+        "roles": ["USER", "ADMIN"]
+      }
+    ]
+  },
+  "users": [
+    {
+      "username": "demo-user",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Usuário",
+      "lastName": "Demonstração",
+      "email": "demo-user@localhost.invalid",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "demo-user-123",
+          "temporary": false
+        }
+      ],
+      "clientRoles": {
+        "orders-api": ["USER"]
+      },
+      "requiredActions": []
+    },
+    {
+      "username": "demo-admin",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Administrador",
+      "lastName": "Demonstração",
+      "email": "demo-admin@localhost.invalid",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "demo-admin-123",
+          "temporary": false
+        }
+      ],
+      "clientRoles": {
+        "orders-api": ["USER", "ADMIN"]
+      },
+      "requiredActions": []
+    }
+  ]
+}

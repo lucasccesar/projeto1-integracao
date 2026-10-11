@@ -1,0 +1,113 @@
+{
+  "info": {
+    "name": "OAuth 2.0 / OIDC API Security Demo",
+    "description": "Cenas reais do seminário. Obtenha os tokens manualmente com Authorization Code + PKCE no Postman e copie-os para o ambiente.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "oauth2",
+    "oauth2": [
+      {"key": "grant_type", "value": "authorization_code", "type": "string"},
+      {"key": "authUrl", "value": "{{keycloakBaseUrl}}/realms/{{realm}}/protocol/openid-connect/auth", "type": "string"},
+      {"key": "accessTokenUrl", "value": "{{keycloakBaseUrl}}/realms/{{realm}}/protocol/openid-connect/token", "type": "string"},
+      {"key": "clientId", "value": "{{clientId}}", "type": "string"},
+      {"key": "scope", "value": "{{scope}}", "type": "string"},
+      {"key": "redirect_uri", "value": "{{redirectUri}}", "type": "string"},
+      {"key": "clientAuthentication", "value": "none", "type": "string"},
+      {"key": "usePkce", "value": true, "type": "boolean"},
+      {"key": "challengeAlgorithm", "value": "S256", "type": "string"}
+    ]
+  },
+  "variable": [
+    {"key": "baseUrl", "value": "http://localhost:8080"},
+    {"key": "keycloakBaseUrl", "value": "http://localhost:8081"},
+    {"key": "realm", "value": "seminar"},
+    {"key": "clientId", "value": "seminar-postman"},
+    {"key": "redirectUri", "value": "https://oauth.pstmn.io/v1/callback"},
+    {"key": "scope", "value": "openid"},
+    {"key": "accessToken", "value": ""},
+    {"key": "adminAccessToken", "value": ""},
+    {"key": "idToken", "value": ""},
+    {"key": "orderId", "value": "1"},
+    {"key": "invalidToken", "value": "token-adulterado-apenas-para-a-cena"}
+  ],
+  "item": [
+    {
+      "name": "01 - Login manual Authorization Code + PKCE",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "description": "Na aba Authorization > OAuth 2.0, selecione Grant Type = Authorization Code (With PKCE), Code Challenge Method = SHA-256, client_id seminar-postman, redirect_uri https://oauth.pstmn.io/v1/callback e scope openid. Use Authorize using browser. Faça login com demo-user ou demo-admin e copie Access Token e ID Token para o ambiente.",
+        "url": {
+          "raw": "{{keycloakBaseUrl}}/realms/{{realm}}/.well-known/openid-configuration",
+          "host": ["{{keycloakBaseUrl}}"],
+          "path": ["realms", "{{realm}}", ".well-known", "openid-configuration"]
+        }
+      }
+    },
+    {
+      "name": "02 - Público (200)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "auth": {"type": "noauth"},
+        "url": "{{baseUrl}}/api/public"
+      }
+    },
+    {
+      "name": "03 - Pedidos sem token (401)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "auth": {"type": "noauth"},
+        "url": "{{baseUrl}}/api/orders"
+      }
+    },
+    {
+      "name": "04 - Listar pedidos do usuário (200)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]},
+        "url": "{{baseUrl}}/api/orders"
+      }
+    },
+    {
+      "name": "05 - Criar pedido (201)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]},
+        "body": {"mode": "raw", "raw": "{\n  \"description\": \"Inscrição no seminário\",\n  \"amount\": 49.90\n}"},
+        "url": "{{baseUrl}}/api/orders"
+      }
+    },
+    {
+      "name": "06 - Excluir com usuário comum (403)",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{accessToken}}", "type": "string"}]},
+        "url": "{{baseUrl}}/api/orders/{{orderId}}"
+      }
+    },
+    {
+      "name": "07 - Excluir com administrador (204)",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{adminAccessToken}}", "type": "string"}]},
+        "url": "{{baseUrl}}/api/orders/{{orderId}}"
+      }
+    },
+    {
+      "name": "08 - Token inválido ou adulterado (401)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "auth": {"type": "bearer", "bearer": [{"key": "token", "value": "{{invalidToken}}", "type": "string"}]},
+        "url": "{{baseUrl}}/api/orders"
+      }
+    }
+  ]
+}
